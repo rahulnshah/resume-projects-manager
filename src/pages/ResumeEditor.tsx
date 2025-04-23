@@ -1,6 +1,7 @@
 import { AppDispatch, RootState } from "src/store";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProjects } from "../store/resumeSlice";
+import { PDFDocument } from "pdf-lib";
 
 export default function ResumePage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -8,8 +9,65 @@ export default function ResumePage() {
     (state: RootState) => state.resume
   );
 
-  const handleImportResume = () => {
-    dispatch(fetchProjects());
+  const handleImportResume = async () => {
+    // Open file picker
+    const [fileHandle] = await window.api.showOpenFilePicker({
+      types: [
+        {
+          description: "PDF Files",
+          accept: { "application/pdf": [".pdf"] },
+        },
+      ],
+      multiple: false,
+    });
+
+    // Read the selected file
+    const file = await fileHandle.getFile();
+    const arrayBuffer = await file.arrayBuffer();
+
+    // Parse the PDF
+    const pdfDoc = await PDFDocument.load(arrayBuffer);
+    const pages = pdfDoc.getPages();
+    let extractedText = "";
+
+    // Extract text from all pages
+    for (const page of pages) {
+      extractedText += page.getTextContent();
+    }
+
+    // Parse the text to extract projects
+    const projects = parseProjectsFromText(extractedText);
+
+    // Dispatch the parsed projects to the Redux store
+    dispatch(fetchProjects.fulfilled(projects));
+  };
+
+  const parseProjectsFromText = (text: string) => {
+    const lines = text.split("\n");
+    const projects = [];
+    let currentProject: { name: string; bullets: string[] } | null = null;
+
+    for (const line of lines) {
+      if (line.trim().length === 0) continue; // Skip empty lines
+
+      if (!line.startsWith("-")) {
+        // Assume it's a project name
+        if (currentProject) {
+          projects.push(currentProject);
+        }
+        currentProject = { name: line.trim(), bullets: [] };
+      } else if (currentProject) {
+        // Assume it's a bullet point
+        currentProject.bullets.push(line.replace("-", "").trim());
+      }
+    }
+
+    // Add the last project
+    if (currentProject) {
+      projects.push(currentProject);
+    }
+
+    return projects;
   };
 
   return (

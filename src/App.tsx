@@ -1,15 +1,20 @@
-export default function App() {
+import { Routes, Route } from "react-router-dom";
+import ResumeEditor from "./pages/ResumeEditor";
+import ProjectArchive from "./pages/ProjectArchive";
+import AddNewProject from "./pages/AddNewProject";
+import TabNav from "./components/TabNav";
+
+function App() {
   return (
     <div>
-      <h1>Welcome to the Electron + Vite + React + TypeScript App!</h1>
-      <p>
-        This is a simple Electron application using Vite, React, and TypeScript.
-        <br />
-        You can start building your app from here.
-        </p>
-        <p>
-        This template is a starting point for building Electron applications with Vite, React, and TypeScript.
-        <br />
-        </div>
-    );
+      <TabNav />
+      <Routes>
+        <Route path="/" element={<ResumeEditor />} />
+        <Route path="/archive" element={<ProjectArchive />} />
+        <Route path="/add" element={<AddNewProject />} />
+      </Routes>
+    </div>
+  );
 }
+
+export default App;

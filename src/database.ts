@@ -11,12 +11,6 @@ db.exec(`
   );
 `);
 
-export interface Project {
-  id: string;
-  name: string;
-  bullets: string[];
-}
-
 export const loadProjects = (): Project[] => {
   const stmt = db.prepare("SELECT * FROM projects");
   return stmt.all() as Project[];

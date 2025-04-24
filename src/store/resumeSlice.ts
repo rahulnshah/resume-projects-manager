@@ -1,19 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
-type Project = {
-  id?: string;
-  name: string;
-  bullets: string[];
-};
-
-interface ResumeState {
-  resumeProjects: Project[];
-  archivedProjects: Project[];
-  allProjects: Project[];
-  loadingProjects: boolean; // For fetching projects
-  savingProjects: boolean; // For saving projects
-}
-
+import { ResumeState } from "src/model";
+import { Project } from "src/model";
 const initialState: ResumeState = {
   resumeProjects: [],
   archivedProjects: [],
@@ -21,34 +8,11 @@ const initialState: ResumeState = {
   loadingProjects: false,
   savingProjects: false,
 };
-
 // Thunk to fetch projects
 export const fetchProjects = createAsyncThunk(
   "resume/fetchProjects",
-  async () => {
-    const projects = await window.api.loadProjects();
-    return [
-      {
-        name: "Smart Coin Tracker",
-        bullets: ["Built in Python", "Tracked coins by type", "Used Redis"],
-      },
-      {
-        name: "Meal Prep Android App",
-        bullets: [
-          "Used Kotlin",
-          "Tracked meal macros",
-          "Shared between friends",
-        ],
-      },
-      {
-        name: "Underwriting Adapter",
-        bullets: [
-          "Worked at Fannie Mae",
-          "Used Angular",
-          "Integrated third-party services",
-        ],
-      },
-    ];
+  async (parsedProjects: Project[]) => {
+    return parsedProjects;
   }
 );
 

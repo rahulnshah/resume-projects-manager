@@ -7,4 +7,10 @@ contextBridge.exposeInMainWorld("api", {
   showOpenFilePicker: async (options: any) => {
     return await ipcRenderer.invoke("show-open-file-picker", options);
   },
+  readFile: async (filePath: string) => {
+    return await ipcRenderer.invoke("read-file", filePath);
+  },
+  parsePdf: async (filePath: string) => {
+    return await ipcRenderer.invoke("parse-pdf", filePath);
+  },
 });

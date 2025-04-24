@@ -45,7 +45,7 @@
     "@tailwindcss/postcss": "^4.1.4",
     "better-sqlite3": "^11.9.1",
     "electron-squirrel-startup": "^1.0.1",
-    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^5.1.91",
     "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

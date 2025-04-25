@@ -4,8 +4,10 @@ import { Project } from "src/model";
 const initialState: ResumeState = {
   resumeProjects: [],
   archivedProjects: [],
+  nonResumeProjects: [],
   allProjects: [],
   loadingProjects: false,
+  loadingNonResumeProjects: false,
   savingProjects: false,
 };
 // Thunk to fetch projects
@@ -13,6 +15,18 @@ export const fetchProjects = createAsyncThunk(
   "resume/fetchProjects",
   async (parsedProjects: Project[]) => {
     return parsedProjects;
+  }
+);
+
+// Thunk to fetch non-resume projects
+export const fetchNonResumeProjects = createAsyncThunk(
+  "resume/fetchNonResumeProjects",
+  async (resumeProjectNames: string[]) => {
+    // Call the API to fetch non-resume projects
+    const nonResumeProjects = await window.api.loadNonResumeProjects(
+      resumeProjectNames
+    );
+    return nonResumeProjects;
   }
 );
 
@@ -33,6 +47,17 @@ const resumeSlice = createSlice({
       })
       .addCase(fetchProjects.rejected, (state) => {
         state.loadingProjects = false;
+      })
+      // Fetch nonResumeProjects
+      .addCase(fetchNonResumeProjects.pending, (state) => {
+        state.loadingNonResumeProjects = true;
+      })
+      .addCase(fetchNonResumeProjects.fulfilled, (state, action) => {
+        state.loadingNonResumeProjects = false;
+        state.nonResumeProjects = action.payload;
+      })
+      .addCase(fetchNonResumeProjects.rejected, (state) => {
+        state.loadingNonResumeProjects = false;
       });
   },
 });

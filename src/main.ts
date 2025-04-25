@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
-import { loadProjects } from "./database";
+import { loadProjects, loadNonResumeProjects } from "./database";
 import * as fs from "fs/promises";
 // import * as pdfjsLib from "pdfjs-dist";
 import { Project } from "./model";
@@ -16,6 +16,14 @@ ipcMain.handle("read-file", async (_, filePath: string) => {
 ipcMain.handle("load-projects", () => {
   return loadProjects();
 });
+
+// Add this handler near your other ipcMain.handle calls
+ipcMain.handle(
+  "load-non-resume-projects",
+  async (_, resumeProjectNames: string[]) => {
+    return loadNonResumeProjects(resumeProjectNames);
+  }
+);
 
 // Add this handler for the file picker
 ipcMain.handle("show-open-file-picker", async (_, options) => {

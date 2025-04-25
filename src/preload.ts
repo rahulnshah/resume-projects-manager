@@ -4,6 +4,8 @@ import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("api", {
   loadProjects: () => ipcRenderer.invoke("load-projects"),
+  loadNonResumeProjects: (resumeProjectNames: string[]) =>
+    ipcRenderer.invoke("load-non-resume-projects", resumeProjectNames),
   showOpenFilePicker: async (options: any) => {
     return await ipcRenderer.invoke("show-open-file-picker", options);
   },

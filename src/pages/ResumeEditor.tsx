@@ -1,6 +1,8 @@
-import { AppDispatch, RootState } from "src/store";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProjects } from "../store/resumeSlice";
+import { AppDispatch, RootState } from "src/store";
+import { fetchProjects, fetchNonResumeProjects } from "../store/resumeSlice";
+import ProjectSwapModal from "../components/ProjectSwapModal";
 import { Project } from "src/model";
 import * as pdfjsLib from "pdfjs-dist";
 
@@ -11,9 +13,28 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 export default function ResumePage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { resumeProjects, loadingProjects } = useSelector(
+  const { resumeProjects, nonResumeProjects, loadingProjects } = useSelector(
     (state: RootState) => state.resume
   );
+
+  const [swapModalOpen, setSwapModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  const handleReplaceClick = async (project: Project) => {
+    // Fetch non-resume projects when opening modal
+    await dispatch(fetchNonResumeProjects(resumeProjects.map((p) => p.name)));
+    setSelectedProject(project);
+    setSwapModalOpen(true);
+  };
+
+  const handleSwapProject = (oldProject: Project, newProject: Project) => {
+    const updatedProjects = resumeProjects.map((p) =>
+      p.id === oldProject.id ? newProject : p
+    );
+    dispatch(fetchProjects(updatedProjects));
+    setSwapModalOpen(false);
+    setSelectedProject(null);
+  };
 
   const handleImportResume = async () => {
     // Open file picker
@@ -66,7 +87,7 @@ export default function ResumePage() {
     }
 
     const section = projectSectionMatch[1].trim();
-    console.log("Project Section:\n", section);
+    //console.log("Project Section:\n", section);
 
     // Regular expression to match each project
     const projectRegex =
@@ -90,7 +111,7 @@ export default function ResumePage() {
       });
     }
 
-    console.log("Parsed Projects:", projects);
+    //console.log("Parsed Projects:", projects);
     return projects;
   };
 
@@ -109,7 +130,15 @@ export default function ResumePage() {
         <div className="space-y-4">
           {resumeProjects.map((project, index) => (
             <div key={index} className="border rounded-lg p-3 shadow">
-              <h3 className="font-semibold text-lg">{project.name}</h3>
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-semibold text-lg">{project.name}</h3>
+                <button
+                  onClick={() => handleReplaceClick(project)}
+                  className="text-sm bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
+                >
+                  Replace
+                </button>
+              </div>
               <ul className="list-disc list-inside">
                 {project.bullets.map((b, i) => (
                   <li key={i}>{b}</li>
@@ -119,6 +148,17 @@ export default function ResumePage() {
           ))}
         </div>
       )}
+
+      <ProjectSwapModal
+        isOpen={swapModalOpen}
+        onClose={() => {
+          setSwapModalOpen(false);
+          setSelectedProject(null);
+        }}
+        onSwap={handleSwapProject}
+        currentProject={selectedProject}
+        availableProjects={nonResumeProjects}
+      />
     </div>
   );
 }

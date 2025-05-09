@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "src/store";
-import { fetchProjects, fetchNonResumeProjects } from "../store/resumeSlice";
+import {
+  fetchProjects,
+  fetchNonResumeProjects,
+  archiveProject,
+} from "../store/resumeSlice";
 import ProjectSwapModal from "../components/ProjectSwapModal";
 import { Project } from "src/model";
 import * as pdfjsLib from "pdfjs-dist";
@@ -34,6 +38,10 @@ export default function ResumePage() {
     dispatch(fetchProjects(updatedProjects));
     setSwapModalOpen(false);
     setSelectedProject(null);
+  };
+
+  const handleArchiveProject = (project: Project) => {
+    dispatch(archiveProject(project));
   };
 
   const handleImportResume = async () => {
@@ -132,12 +140,20 @@ export default function ResumePage() {
             <div key={index} className="border rounded-lg p-3 shadow">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-lg">{project.name}</h3>
-                <button
-                  onClick={() => handleReplaceClick(project)}
-                  className="text-sm bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
-                >
-                  Replace
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleReplaceClick(project)}
+                    className="text-sm bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
+                  >
+                    Replace
+                  </button>
+                  <button
+                    onClick={() => handleArchiveProject(project)}
+                    className="text-sm text-red-600 hover:text-red-700 px-2 py-1 rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
               <ul className="list-disc list-inside">
                 {project.bullets.map((b, i) => (

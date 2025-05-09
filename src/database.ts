@@ -30,3 +30,21 @@ export const loadNonResumeProjects = (
   // Pass the array values to the prepared statement
   return stmt.all(...resumeProjectNames) as Project[];
 };
+
+export const saveProjects = async (projects: Project[]): Promise<void> => {
+  const stmt = db.prepare(`
+    INSERT OR IGNORE INTO projects (id, name, bullets)
+    VALUES (@id, @name, @bullets)
+  `);
+
+  const insertMany = db.transaction((projects) => {
+    for (const proj of projects) {
+      stmt.run({
+        ...proj,
+        bullets: JSON.stringify(proj.bullets),
+      });
+    }
+  });
+
+  insertMany(projects);
+};

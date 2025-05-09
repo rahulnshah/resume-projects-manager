@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { ResumeState } from "src/model";
-import { Project } from "src/model";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { ResumeState, Project } from "src/model";
+
 const initialState: ResumeState = {
   resumeProjects: [],
   archivedProjects: [],
@@ -10,6 +10,7 @@ const initialState: ResumeState = {
   loadingNonResumeProjects: false,
   savingProjects: false,
 };
+
 // Thunk to fetch projects
 export const fetchProjects = createAsyncThunk(
   "resume/fetchProjects",
@@ -30,11 +31,36 @@ export const fetchNonResumeProjects = createAsyncThunk(
   }
 );
 
+// Add new thunk for saving archived projects
+export const saveArchivedProjects = createAsyncThunk(
+  "resume/saveArchivedProjects",
+  async (_, { getState }) => {
+    const state = getState() as { resume: ResumeState };
+    const projects = state.resume.archivedProjects;
+
+    // Save to SQLite via IPC
+    await window.api.saveProjects(projects);
+    return projects;
+  }
+);
+
 const resumeSlice = createSlice({
   name: "resume",
   initialState,
   reducers: {
-    // will fill these in later
+    archiveProject: (state, action: PayloadAction<Project>) => {
+      // Remove from resume projects
+      state.resumeProjects = state.resumeProjects.filter(
+        (p) => p.id !== action.payload.id
+      );
+      // Add to archived projects if not already there
+      if (!state.archivedProjects.find((p) => p.id === action.payload.id)) {
+        state.archivedProjects.push(action.payload);
+      }
+    },
+    clearArchivedProjects: (state) => {
+      state.archivedProjects = [];
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -58,9 +84,19 @@ const resumeSlice = createSlice({
       })
       .addCase(fetchNonResumeProjects.rejected, (state) => {
         state.loadingNonResumeProjects = false;
+      })
+      .addCase(saveArchivedProjects.pending, (state) => {
+        state.savingProjects = true;
+      })
+      .addCase(saveArchivedProjects.fulfilled, (state) => {
+        state.savingProjects = false;
+        state.archivedProjects = []; // Clear after saving
+      })
+      .addCase(saveArchivedProjects.rejected, (state) => {
+        state.savingProjects = false;
       });
   },
 });
 
-export const {} = resumeSlice.actions;
+export const { archiveProject, clearArchivedProjects } = resumeSlice.actions;
 export default resumeSlice.reducer;

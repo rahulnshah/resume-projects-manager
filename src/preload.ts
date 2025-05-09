@@ -1,7 +1,7 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 import { contextBridge, ipcRenderer } from "electron";
-
+import { Project } from "./model";
 contextBridge.exposeInMainWorld("api", {
   loadProjects: () => ipcRenderer.invoke("load-projects"),
   loadNonResumeProjects: (resumeProjectNames: string[]) =>
@@ -14,5 +14,8 @@ contextBridge.exposeInMainWorld("api", {
   },
   parsePdf: async (filePath: string) => {
     return await ipcRenderer.invoke("parse-pdf", filePath);
+  },
+  saveProjects: async (projects: Project[]) => {
+    return await ipcRenderer.invoke("save-projects", projects);
   },
 });

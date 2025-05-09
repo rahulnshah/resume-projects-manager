@@ -1,8 +1,4 @@
-interface Project {
-  id: string;
-  name: string;
-  bullets: string[];
-}
+import { Project } from "../model";
 
 interface ProjectAPI {
   loadProjects: () => Promise<Project[]>;
@@ -13,6 +9,8 @@ interface ProjectAPI {
   saveProjects: (projects: Project[]) => Promise<void>;
 }
 
-interface Window {
-  api: ProjectAPI;
+declare global {
+  interface Window {
+    api: ProjectAPI;
+  }
 }

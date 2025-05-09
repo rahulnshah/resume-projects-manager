@@ -34,8 +34,8 @@ export default function ProjectArchive() {
       </div>
 
       <div className="space-y-4">
-        {archivedProjects.map((project) => (
-          <div key={project.id} className="border rounded-lg p-3 shadow">
+        {archivedProjects.map((project, index) => (
+          <div key={index} className="border rounded-lg p-3 shadow">
             <h3 className="font-semibold text-lg mb-2">{project.name}</h3>
             <ul className="list-disc list-inside">
               {project.bullets.map((bullet, idx) => (

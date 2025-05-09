@@ -1,3 +1,4 @@
+import { Project } from "./model";
 import Database from "better-sqlite3";
 
 const db = new Database("projects.db");
@@ -5,8 +6,8 @@ const db = new Database("projects.db");
 // Only create table if it doesn't exist
 db.exec(`
   CREATE TABLE IF NOT EXISTS projects (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
     bullets TEXT NOT NULL -- Stored as JSON string
   );
 `);
@@ -33,11 +34,11 @@ export const loadNonResumeProjects = (
 
 export const saveProjects = async (projects: Project[]): Promise<void> => {
   const stmt = db.prepare(`
-    INSERT OR IGNORE INTO projects (id, name, bullets)
-    VALUES (@id, @name, @bullets)
+    INSERT OR IGNORE INTO projects (name, bullets)
+    VALUES (@name, @bullets)
   `);
 
-  const insertMany = db.transaction((projects) => {
+  const insertMany = db.transaction((projects: Project[]) => {
     for (const proj of projects) {
       stmt.run({
         ...proj,

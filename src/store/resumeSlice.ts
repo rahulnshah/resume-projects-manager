@@ -51,10 +51,10 @@ const resumeSlice = createSlice({
     archiveProject: (state, action: PayloadAction<Project>) => {
       // Remove from resume projects
       state.resumeProjects = state.resumeProjects.filter(
-        (p) => p.id !== action.payload.id
+        (p) => p.name !== action.payload.name
       );
       // Add to archived projects if not already there
-      if (!state.archivedProjects.find((p) => p.id === action.payload.id)) {
+      if (!state.archivedProjects.find((p) => p.name === action.payload.name)) {
         state.archivedProjects.push(action.payload);
       }
     },

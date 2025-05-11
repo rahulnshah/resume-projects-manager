@@ -28,8 +28,11 @@ export const loadNonResumeProjects = (
   const query = `SELECT * FROM projects WHERE name NOT IN (${placeholders})`;
   const stmt = db.prepare(query);
 
-  // Pass the array values to the prepared statement
-  return stmt.all(...resumeProjectNames) as Project[];
+  // Parse the JSON bullets string back into arrays
+  return stmt.all(...resumeProjectNames).map((project: any) => ({
+    ...project,
+    bullets: JSON.parse(project.bullets),
+  })) as Project[];
 };
 
 export const saveProjects = async (projects: Project[]): Promise<void> => {

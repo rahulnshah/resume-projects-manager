@@ -5,6 +5,7 @@ import {
   fetchProjects,
   fetchNonResumeProjects,
   archiveProject,
+  swapProject,
 } from "../store/resumeSlice";
 import ProjectSwapModal from "../components/ProjectSwapModal";
 import { Project } from "src/model";
@@ -32,10 +33,7 @@ export default function ResumePage() {
   };
 
   const handleSwapProject = (oldProject: Project, newProject: Project) => {
-    const updatedProjects = resumeProjects.map((p) =>
-      p.id === oldProject.id ? newProject : p
-    );
-    dispatch(fetchProjects(updatedProjects));
+    dispatch(swapProject({ oldProject, newProject }));
     setSwapModalOpen(false);
     setSelectedProject(null);
   };

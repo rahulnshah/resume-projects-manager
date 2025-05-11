@@ -16,7 +16,7 @@ export default function ProjectSwapModal({
   availableProjects,
 }: ProjectSwapModalProps) {
   if (!isOpen || !currentProject) return null;
-  console.log("aviableProjects", availableProjects);
+  //console.log("aviableProjects", availableProjects);
   return (
     <div className="fixed inset-y-0 right-0 w-80 bg-white shadow-lg p-4 border-l">
       <div className="flex justify-between items-center mb-4">

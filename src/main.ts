@@ -3,8 +3,6 @@ import path from "node:path";
 import started from "electron-squirrel-startup";
 import { loadProjects, loadNonResumeProjects, saveProjects } from "./database";
 import * as fs from "fs/promises";
-// import * as pdfjsLib from "pdfjs-dist";
-import { Project } from "./model";
 ipcMain.handle("read-file", async (_, filePath: string) => {
   try {
     const data = await fs.readFile(filePath);
@@ -94,67 +92,3 @@ app.on("activate", () => {
     createWindow();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
-
-// ipcMain.handle("parse-pdf", async (_, filePath: string) => {
-//   try {
-//     // Read the file as a Buffer
-//     const fileBuffer = await fs.readFile(filePath);
-
-//     // // Set the worker source for PDF.js
-//     // pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-
-//     // Load the PDF using PDF.js
-//     const pdf = await pdfjsLib.getDocument({ data: fileBuffer }).promise;
-//     let text = "";
-
-//     // Extract text from all pages
-//     for (let i = 1; i <= pdf.numPages; i++) {
-//       const page = await pdf.getPage(i);
-//       const textContent = await page.getTextContent();
-//       const pageText = textContent.items.map((item: any) => item.str).join(" ");
-//       text += pageText + "\n";
-//     }
-
-//     const projectSectionMatch = text.match(/PROJECTS([\s\S]*?)CERTIFICATIONS/i);
-//     if (!projectSectionMatch) return [];
-
-//     const section = projectSectionMatch[1].trim();
-
-//     const lines = section
-//       .split("\n")
-//       .map((line) => line.trim())
-//       .filter(Boolean);
-
-//     const projects: Project[] = [];
-//     let currentProject: Project | null = null;
-
-//     for (let line of lines) {
-//       if (/^https?:\/\/\S+$/i.test(line)) {
-//         // This is a URL - ignore or attach later if needed
-//         continue;
-//       }
-
-//       if (/^[A-Z][A-Za-z0-9\s\-&]+$/.test(line) && !line.startsWith("●")) {
-//         // Likely a project title
-//         if (currentProject) {
-//           projects.push(currentProject);
-//         }
-//         currentProject = { name: line.trim(), bullets: [] };
-//       } else if (line.startsWith("●") && currentProject) {
-//         // This is a bullet point
-//         currentProject.bullets.push(line.replace(/^●\s*/, "").trim());
-//       }
-//     }
-
-//     if (currentProject) {
-//       projects.push(currentProject);
-//     }
-
-//     return projects;
-//   } catch (error) {
-//     throw new Error(`Failed to parse PDF: ${error.message}`);
-//   }
-// });

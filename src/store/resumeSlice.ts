@@ -61,6 +61,15 @@ const resumeSlice = createSlice({
     clearArchivedProjects: (state) => {
       state.archivedProjects = [];
     },
+    swapProject: (
+      state,
+      action: PayloadAction<{ oldProject: Project; newProject: Project }>
+    ) => {
+      const { oldProject, newProject } = action.payload;
+      state.resumeProjects = state.resumeProjects.map((p) =>
+        p.name === oldProject.name ? newProject : p
+      );
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -98,5 +107,6 @@ const resumeSlice = createSlice({
   },
 });
 
-export const { archiveProject, clearArchivedProjects } = resumeSlice.actions;
+export const { archiveProject, clearArchivedProjects, swapProject } =
+  resumeSlice.actions;
 export default resumeSlice.reducer;

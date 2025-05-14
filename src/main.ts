@@ -3,7 +3,7 @@ import path from "node:path";
 import started from "electron-squirrel-startup";
 import { loadProjects, loadNonResumeProjects, saveProjects } from "./database";
 import * as fs from "fs/promises";
-import { PDFDocument, rgb } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Project } from "./model";
 
 ipcMain.handle("read-file", async (_, filePath: string) => {
@@ -74,8 +74,8 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
     });
 
     // Embed Times New Roman font
-    const timesRomanFont = await pdfDoc.embedFont("Times-Roman");
-    const timesRomanBold = await pdfDoc.embedFont("Times-Bold");
+    const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+    const timesRomanBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
 
     // Split text into lines for processing
     const lines = fullText.split("\n");
@@ -83,11 +83,10 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
 
     for (const line of lines) {
       if (!line.trim()) {
-        yOffset -= 12; // Space between sections
+        yOffset -= 12;
         continue;
       }
 
-      // Determine formatting for different parts
       let fontSize = 10;
       let font = timesRomanFont;
       let xOffset = 50;
@@ -95,19 +94,19 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
       // Name (first line)
       if (lines.indexOf(line) === 0) {
         fontSize = 25;
-        font = timesRomanBold;
+        font = timesRomanFont;
         xOffset = (width - font.widthOfTextAtSize(line.trim(), fontSize)) / 2;
       }
       // Contact info (second line)
       else if (lines.indexOf(line) === 1) {
         xOffset = (width - font.widthOfTextAtSize(line.trim(), fontSize)) / 2;
       }
-      // Section headers (all caps)
+      // Section headers (all caps) and horizontal lines
       else if (/^[A-Z\s]+$/.test(line.trim())) {
         fontSize = 12;
         font = timesRomanBold;
       }
-      // Project names
+      // Project names (any line that's not a bullet point)
       else if (!line.includes("-") && line.trim().length > 0) {
         font = timesRomanBold;
       }
@@ -124,6 +123,16 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
         font: font,
         color: rgb(0, 0, 0),
       });
+
+      if (/^[A-Z\s]+$/.test(line.trim())) {
+        yOffset -= fontSize;
+        page.drawLine({
+          start: { x: 50, y: yOffset },
+          end: { x: width - 50, y: yOffset },
+          thickness: 1,
+          color: rgb(0, 0, 0),
+        });
+      }
 
       // Adjust spacing based on font size
       yOffset -= fontSize * 1.2;

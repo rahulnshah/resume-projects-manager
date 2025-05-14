@@ -165,17 +165,17 @@ export default function ResumePage() {
       const newProjectsSection = resumeProjects
         .map((project) => {
           const bullets = project.bullets
-            .map((bullet) => `    - ${bullet}`)
+            .map((bullet) => `    -  ${bullet}`)
             .join("\n");
           return `${project.name}\n${bullets}`;
         })
-        .join("\n\n");
+        .join("\n");
 
       // Replace old projects section with new one, preserving formatting
       const modifiedText = pdfText
         .replace(
-          /PROJECTS([\s\S]*?)CERTIFICATIONS/i,
-          `PROJECTS\n\n${newProjectsSection}\n\nCERTIFICATIONS`
+          /PROJECTS([\s\S]*?)(?=CERTIFICATIONS|$)/i,
+          `PROJECTS\n${newProjectsSection}\n`
         )
         .replace(/●/g, "-");
 

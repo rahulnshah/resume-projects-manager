@@ -6,6 +6,7 @@ import {
   fetchNonResumeProjects,
   archiveProject,
   swapProject,
+  setSourcePdfPath, // Import the action
 } from "../store/resumeSlice";
 import ProjectSwapModal from "../components/ProjectSwapModal";
 import { Project } from "src/model";
@@ -18,13 +19,16 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 export default function ResumePage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { resumeProjects, nonResumeProjects, loadingProjects } = useSelector(
-    (state: RootState) => state.resume
-  );
+  const {
+    resumeProjects,
+    nonResumeProjects,
+    loadingProjects,
+    sourcePdfPath, // Get from Redux instead of local state
+  } = useSelector((state: RootState) => state.resume);
 
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [sourcePdfPath, setSourcePdfPath] = useState<string>("");
+  // Remove sourcePdfPath useState
 
   const handleReplaceClick = async (project: Project) => {
     // Fetch non-resume projects when opening modal
@@ -84,7 +88,7 @@ export default function ResumePage() {
 
     // Dispatch the parsed projects to the Redux store
     dispatch(fetchProjects(projects));
-    setSourcePdfPath(filePaths[0]);
+    dispatch(setSourcePdfPath(filePaths[0])); // Use Redux action instead
   };
 
   const extractProjects = (text: string): Project[] => {
@@ -206,13 +210,22 @@ export default function ResumePage() {
         >
           Import Résumé (PDF)
         </button>
-        <button
-          onClick={handleExportResume}
-          disabled={!sourcePdfPath}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
-        >
-          Export Résumé
-        </button>
+        <div className="relative">
+          <button
+            onClick={handleExportResume}
+            disabled={!sourcePdfPath || resumeProjects.length < 3}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
+            title={
+              !sourcePdfPath
+                ? "Please import a résumé first"
+                : resumeProjects.length < 3
+                ? "At least 3 projects required"
+                : ""
+            }
+          >
+            Export Résumé
+          </button>
+        </div>
       </div>
 
       {loadingProjects && <p>Loading projects...</p>}

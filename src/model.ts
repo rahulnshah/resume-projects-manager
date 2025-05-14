@@ -12,4 +12,5 @@ export interface ResumeState {
   loadingProjects: boolean; // For fetching projects
   loadingNonResumeProjects: boolean; // Loading state for nonResumeProjects
   savingProjects: boolean; // For saving projects
+  sourcePdfPath: string; // Add this to store the source PDF path
 }

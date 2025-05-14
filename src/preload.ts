@@ -18,4 +18,6 @@ contextBridge.exposeInMainWorld("api", {
   saveProjects: async (projects: Project[]) => {
     return await ipcRenderer.invoke("save-projects", projects);
   },
+  selectSaveLocation: () => ipcRenderer.invoke("select-save-location"),
+  savePdf: (options: any) => ipcRenderer.invoke("save-pdf", options),
 });

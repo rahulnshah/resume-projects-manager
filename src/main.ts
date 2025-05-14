@@ -3,6 +3,9 @@ import path from "node:path";
 import started from "electron-squirrel-startup";
 import { loadProjects, loadNonResumeProjects, saveProjects } from "./database";
 import * as fs from "fs/promises";
+import { PDFDocument, rgb } from "pdf-lib";
+import { Project } from "./model";
+
 ipcMain.handle("read-file", async (_, filePath: string) => {
   try {
     const data = await fs.readFile(filePath);
@@ -41,6 +44,98 @@ ipcMain.handle("show-open-file-picker", async (_, options) => {
 // Add this handler
 ipcMain.handle("save-projects", async (_, projects) => {
   return saveProjects(projects);
+});
+
+// Add handler for selecting save location
+ipcMain.handle("select-save-location", async () => {
+  const result = await dialog.showSaveDialog({
+    filters: [{ name: "PDF Files", extensions: ["pdf"] }],
+    defaultPath: "resume.pdf",
+  });
+  return result.filePath;
+});
+
+// Add handler for saving PDF
+ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
+  try {
+    const pdfBytes = await fs.readFile(sourcePath);
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const pages = pdfDoc.getPages();
+    const page = pages[0];
+    const { width, height } = page.getSize();
+
+    // Clear existing content
+    page.drawRectangle({
+      x: 0,
+      y: 0,
+      width,
+      height,
+      color: rgb(1, 1, 1),
+    });
+
+    // Embed Times New Roman font
+    const timesRomanFont = await pdfDoc.embedFont("Times-Roman");
+    const timesRomanBold = await pdfDoc.embedFont("Times-Bold");
+
+    // Split text into lines for processing
+    const lines = fullText.split("\n");
+    let yOffset = height - 50;
+
+    for (const line of lines) {
+      if (!line.trim()) {
+        yOffset -= 12; // Space between sections
+        continue;
+      }
+
+      // Determine formatting for different parts
+      let fontSize = 10;
+      let font = timesRomanFont;
+      let xOffset = 50;
+
+      // Name (first line)
+      if (lines.indexOf(line) === 0) {
+        fontSize = 25;
+        font = timesRomanBold;
+        xOffset = (width - font.widthOfTextAtSize(line.trim(), fontSize)) / 2;
+      }
+      // Contact info (second line)
+      else if (lines.indexOf(line) === 1) {
+        xOffset = (width - font.widthOfTextAtSize(line.trim(), fontSize)) / 2;
+      }
+      // Section headers (all caps)
+      else if (/^[A-Z\s]+$/.test(line.trim())) {
+        fontSize = 12;
+        font = timesRomanBold;
+      }
+      // Project names
+      else if (!line.includes("-") && line.trim().length > 0) {
+        font = timesRomanBold;
+      }
+      // Bullet points
+      else if (line.includes("-")) {
+        xOffset = 70;
+      }
+
+      // Draw the line
+      page.drawText(line.trim(), {
+        x: xOffset,
+        y: yOffset,
+        size: fontSize,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+
+      // Adjust spacing based on font size
+      yOffset -= fontSize * 1.2;
+    }
+
+    const newPdfBytes = await pdfDoc.save();
+    await fs.writeFile(outputPath, newPdfBytes);
+    return true;
+  } catch (error) {
+    console.error("Failed to save PDF:", error);
+    return false;
+  }
 });
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.

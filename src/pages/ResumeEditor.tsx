@@ -11,7 +11,7 @@ import ProjectSwapModal from "../components/ProjectSwapModal";
 import { Project } from "src/model";
 import * as pdfjsLib from "pdfjs-dist";
 
-// This is the key line that fixes your error
+// Set worker path for PDF.js (this is correct for renderer process)
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.mjs",
   import.meta.url
@@ -24,6 +24,7 @@ export default function ResumePage() {
 
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [sourcePdfPath, setSourcePdfPath] = useState<string>("");
 
   const handleReplaceClick = async (project: Project) => {
     // Fetch non-resume projects when opening modal
@@ -83,6 +84,7 @@ export default function ResumePage() {
 
     // Dispatch the parsed projects to the Redux store
     dispatch(fetchProjects(projects));
+    setSourcePdfPath(filePaths[0]);
   };
 
   const extractProjects = (text: string): Project[] => {
@@ -121,14 +123,97 @@ export default function ResumePage() {
     return projects;
   };
 
+  const handleExportResume = async () => {
+    if (!sourcePdfPath) {
+      alert("Please import a résumé first");
+      return;
+    }
+
+    try {
+      const outputPath = await window.api.selectSaveLocation();
+      if (!outputPath) return;
+
+      // First get the original PDF text content
+      const arrayBuffer = await window.api.readFile(sourcePdfPath);
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let pdfText = "";
+
+      // Extract text from all pages with proper line breaks
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+
+        // Group items by their y-position to maintain line structure
+        const lineMap = new Map();
+        textContent.items.forEach((item: any) => {
+          const y = Math.round(item.transform[5]); // y-position
+          if (!lineMap.has(y)) {
+            lineMap.set(y, []);
+          }
+          lineMap.get(y).push(item.str);
+        });
+
+        // Sort by y-position (top to bottom) and join lines
+        const sortedLines = Array.from(lineMap.entries())
+          .sort((a, b) => b[0] - a[0])
+          .map(([_, line]) => line.join(" "));
+
+        pdfText += sortedLines.join("\n");
+      }
+
+      // Create new projects section content with proper formatting
+      const newProjectsSection = resumeProjects
+        .map((project) => {
+          const bullets = project.bullets
+            .map((bullet) => `    - ${bullet}`)
+            .join("\n");
+          return `${project.name}\n${bullets}`;
+        })
+        .join("\n\n");
+
+      // Replace old projects section with new one, preserving formatting
+      const modifiedText = pdfText
+        .replace(
+          /PROJECTS([\s\S]*?)CERTIFICATIONS/i,
+          `PROJECTS\n\n${newProjectsSection}\n\nCERTIFICATIONS`
+        )
+        .replace(/●/g, "-");
+
+      // Send modified content to main process for PDF creation
+      const success = await window.api.savePdf({
+        sourcePath: sourcePdfPath,
+        outputPath,
+        fullText: modifiedText,
+      });
+
+      if (success) {
+        alert("Résumé exported successfully!");
+      } else {
+        alert("Failed to export résumé");
+      }
+    } catch (error) {
+      console.error("Export failed:", error);
+      alert("Failed to export résumé");
+    }
+  };
+
   return (
     <div className="p-4">
-      <button
-        onClick={handleImportResume}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4"
-      >
-        Import Résumé (PDF)
-      </button>
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={handleImportResume}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Import Résumé (PDF)
+        </button>
+        <button
+          onClick={handleExportResume}
+          disabled={!sourcePdfPath}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
+        >
+          Export Résumé
+        </button>
+      </div>
 
       {loadingProjects && <p>Loading projects...</p>}
 

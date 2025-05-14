@@ -81,10 +81,10 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
     const lines = fullText.split("\n");
     let yOffset = height - 50;
 
-    for (const line of lines) {
+    lines.forEach((line: string) => {
       if (!line.trim()) {
         yOffset -= 12;
-        continue;
+        return; // Skip empty lines
       }
 
       let fontSize = 10;
@@ -107,11 +107,20 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
         font = timesRomanBold;
       }
       // Project names (any line that's not a bullet point)
-      else if (!line.includes("-") && line.trim().length > 0) {
+      else if (
+        !line.includes("-") &&
+        !line.endsWith(".") &&
+        !(line.split(",").length > 10)
+      ) {
         font = timesRomanBold;
       }
+      // experience title - ends with - Present or last two digits of an year
+      else if (line.endsWith("Present") || line.search(/([0-9]{2})$/)) {
+        font = timesRomanBold;
+        fontSize = 10;
+      }
       // Bullet points
-      else if (line.includes("-")) {
+      else if (line.startsWith("-")) {
         xOffset = 70;
       }
 
@@ -136,7 +145,7 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
 
       // Adjust spacing based on font size
       yOffset -= fontSize * 1.2;
-    }
+    });
 
     const newPdfBytes = await pdfDoc.save();
     await fs.writeFile(outputPath, newPdfBytes);

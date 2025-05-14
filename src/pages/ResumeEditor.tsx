@@ -162,7 +162,10 @@ export default function ResumePage() {
           .sort((a, b) => b[0] - a[0])
           .map(([_, line]) => line.join(" "));
 
-        pdfText += sortedLines.join("\n");
+        const trimmedLines = sortedLines.map((line) => line.trim());
+        pdfText += trimmedLines.join("\n");
+
+        console.log("trimmed", trimmedLines);
       }
 
       // Create new projects section content with proper formatting

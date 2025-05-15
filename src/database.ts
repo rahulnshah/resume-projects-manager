@@ -37,8 +37,10 @@ export const loadNonResumeProjects = (
 
 export const saveProjects = async (projects: Project[]): Promise<void> => {
   const stmt = db.prepare(`
-    INSERT OR IGNORE INTO projects (name, bullets)
+    INSERT INTO projects (name, bullets)
     VALUES (@name, @bullets)
+    ON CONFLICT(name) 
+    DO UPDATE SET bullets = @bullets
   `);
 
   const insertMany = db.transaction((projects: Project[]) => {

@@ -34,9 +34,12 @@ export const fetchNonResumeProjects = createAsyncThunk(
 // Add new thunk for saving archived projects
 export const saveArchivedProjects = createAsyncThunk(
   "resume/saveArchivedProjects",
-  async (_, { getState }) => {
+  async (editedProjects: { [key: string]: Project }, { getState }) => {
     const state = getState() as { resume: ResumeState };
-    const projects = state.resume.archivedProjects;
+    const projects = state.resume.archivedProjects.map((project) => ({
+      ...project,
+      bullets: editedProjects[project.name]?.bullets || project.bullets,
+    }));
 
     // Save to SQLite via IPC
     await window.api.saveProjects(projects);

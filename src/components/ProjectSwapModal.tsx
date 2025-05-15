@@ -1,4 +1,6 @@
 import { Project } from "../model";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 
 interface ProjectSwapModalProps {
   isOpen: boolean;
@@ -15,8 +17,15 @@ export default function ProjectSwapModal({
   currentProject,
   availableProjects,
 }: ProjectSwapModalProps) {
+  // Get archived projects from Redux store
+  const archivedProjects = useSelector(
+    (state: RootState) => state.resume.archivedProjects
+  );
+
   if (!isOpen || !currentProject) return null;
-  //console.log("aviableProjects", availableProjects);
+  // Create a map of archived project names for quick lookup
+  const archivedProjectNames = new Set(archivedProjects.map((p) => p.name));
+
   return (
     <div className="fixed inset-y-0 right-0 w-80 bg-white shadow-lg p-4 border-l">
       <div className="flex justify-between items-center mb-4">
@@ -37,16 +46,31 @@ export default function ProjectSwapModal({
           </div>
         ) : (
           availableProjects.map((project) => (
-            <button
+            <div
               key={project.id}
-              onClick={() => onSwap(currentProject, project)}
-              className="w-full p-2 text-left border rounded hover:bg-gray-50"
+              className={`w-full p-2 border rounded ${
+                archivedProjectNames.has(project.name)
+                  ? "bg-gray-100 cursor-not-allowed"
+                  : "hover:bg-gray-50 cursor-pointer"
+              }`}
+              onClick={() => {
+                if (!archivedProjectNames.has(project.name)) {
+                  onSwap(currentProject, project);
+                }
+              }}
             >
-              <div className="font-medium">{project.name}</div>
+              <div className="flex justify-between items-center">
+                <div className="font-medium">{project.name}</div>
+                {archivedProjectNames.has(project.name) && (
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                    Archived
+                  </span>
+                )}
+              </div>
               <div className="text-sm text-gray-500">
                 {project.bullets.length} bullet points
               </div>
-            </button>
+            </div>
           ))
         )}
       </div>

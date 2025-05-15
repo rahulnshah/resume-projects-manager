@@ -5,10 +5,10 @@ const initialState: ResumeState = {
   resumeProjects: [],
   archivedProjects: [],
   nonResumeProjects: [],
-  allProjects: [],
   loadingProjects: false,
   loadingNonResumeProjects: false,
   savingProjects: false,
+  sourcePdfPath: "", // Add this
 };
 
 // Thunk to fetch projects
@@ -78,6 +78,9 @@ const resumeSlice = createSlice({
       // Add to resume projects
       state.resumeProjects.push(action.payload);
     },
+    setSourcePdfPath: (state, action: PayloadAction<string>) => {
+      state.sourcePdfPath = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -120,5 +123,6 @@ export const {
   clearArchivedProjects,
   swapProject,
   restoreProject,
+  setSourcePdfPath, // Add this
 } = resumeSlice.actions;
 export default resumeSlice.reducer;

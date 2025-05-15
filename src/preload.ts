@@ -12,10 +12,9 @@ contextBridge.exposeInMainWorld("api", {
   readFile: async (filePath: string) => {
     return await ipcRenderer.invoke("read-file", filePath);
   },
-  parsePdf: async (filePath: string) => {
-    return await ipcRenderer.invoke("parse-pdf", filePath);
-  },
   saveProjects: async (projects: Project[]) => {
     return await ipcRenderer.invoke("save-projects", projects);
   },
+  selectSaveLocation: () => ipcRenderer.invoke("select-save-location"),
+  savePdf: (options: any) => ipcRenderer.invoke("save-pdf", options),
 });

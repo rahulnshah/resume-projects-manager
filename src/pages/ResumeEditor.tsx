@@ -6,24 +6,29 @@ import {
   fetchNonResumeProjects,
   archiveProject,
   swapProject,
+  setSourcePdfPath, // Import the action
 } from "../store/resumeSlice";
 import ProjectSwapModal from "../components/ProjectSwapModal";
 import { Project } from "src/model";
 import * as pdfjsLib from "pdfjs-dist";
 
-// This is the key line that fixes your error
+// Set worker path for PDF.js (this is correct for renderer process)
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.mjs",
   import.meta.url
 ).toString();
 export default function ResumePage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { resumeProjects, nonResumeProjects, loadingProjects } = useSelector(
-    (state: RootState) => state.resume
-  );
+  const {
+    resumeProjects,
+    nonResumeProjects,
+    loadingProjects,
+    sourcePdfPath, // Get from Redux instead of local state
+  } = useSelector((state: RootState) => state.resume);
 
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  // Remove sourcePdfPath useState
 
   const handleReplaceClick = async (project: Project) => {
     // Fetch non-resume projects when opening modal
@@ -83,6 +88,7 @@ export default function ResumePage() {
 
     // Dispatch the parsed projects to the Redux store
     dispatch(fetchProjects(projects));
+    dispatch(setSourcePdfPath(filePaths[0])); // Use Redux action instead
   };
 
   const extractProjects = (text: string): Project[] => {
@@ -121,14 +127,109 @@ export default function ResumePage() {
     return projects;
   };
 
+  const handleExportResume = async () => {
+    if (!sourcePdfPath) {
+      alert("Please import a résumé first");
+      return;
+    }
+
+    try {
+      const outputPath = await window.api.selectSaveLocation();
+      if (!outputPath) return;
+
+      // First get the original PDF text content
+      const arrayBuffer = await window.api.readFile(sourcePdfPath);
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let pdfText = "";
+
+      // Extract text from all pages with proper line breaks
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+
+        // Group items by their y-position to maintain line structure
+        const lineMap = new Map();
+        textContent.items.forEach((item: any) => {
+          const y = Math.round(item.transform[5]); // y-position
+          if (!lineMap.has(y)) {
+            lineMap.set(y, []);
+          }
+          lineMap.get(y).push(item.str);
+        });
+
+        // Sort by y-position (top to bottom) and join lines
+        const sortedLines = Array.from(lineMap.entries())
+          .sort((a, b) => b[0] - a[0])
+          .map(([_, line]) => line.join(" "));
+
+        const trimmedLines = sortedLines.map((line) => line.trim());
+        pdfText += trimmedLines.join("\n");
+
+        console.log("trimmed", trimmedLines);
+      }
+
+      // Create new projects section content with proper formatting
+      const newProjectsSection = resumeProjects
+        .map((project) => {
+          const bullets = project.bullets
+            .map((bullet) => `    -  ${bullet}`)
+            .join("\n");
+          return `${project.name}\n${bullets}`;
+        })
+        .join("\n");
+
+      // Replace old projects section with new one, preserving formatting
+      const modifiedText = pdfText
+        .replace(
+          /PROJECTS([\s\S]*?)(?=CERTIFICATIONS|$)/i,
+          `PROJECTS\n${newProjectsSection}\n`
+        )
+        .replace(/●/g, "-");
+
+      // Send modified content to main process for PDF creation
+      const success = await window.api.savePdf({
+        sourcePath: sourcePdfPath,
+        outputPath,
+        fullText: modifiedText,
+      });
+
+      if (success) {
+        alert("Résumé exported successfully!");
+      } else {
+        alert("Failed to export résumé");
+      }
+    } catch (error) {
+      console.error("Export failed:", error);
+      alert("Failed to export résumé");
+    }
+  };
+
   return (
     <div className="p-4">
-      <button
-        onClick={handleImportResume}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4"
-      >
-        Import Résumé (PDF)
-      </button>
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={handleImportResume}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Import Résumé (PDF)
+        </button>
+        <div className="relative">
+          <button
+            onClick={handleExportResume}
+            disabled={!sourcePdfPath || resumeProjects.length < 3}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
+            title={
+              !sourcePdfPath
+                ? "Please import a résumé first"
+                : resumeProjects.length < 3
+                ? "At least 3 projects required"
+                : ""
+            }
+          >
+            Export Résumé
+          </button>
+        </div>
+      </div>
 
       {loadingProjects && <p>Loading projects...</p>}
 

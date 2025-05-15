@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
+import ThemeToggle from "./ThemeToggle";
 
 export default function TabNav() {
   const archivedProjects = useSelector(
@@ -47,6 +48,7 @@ export default function TabNav() {
         </span>
         Add New Project
       </NavLink>
+      <ThemeToggle />
     </nav>
   );
 }

@@ -5,7 +5,6 @@ const initialState: ResumeState = {
   resumeProjects: [],
   archivedProjects: [],
   nonResumeProjects: [],
-  allProjects: [],
   loadingProjects: false,
   loadingNonResumeProjects: false,
   savingProjects: false,

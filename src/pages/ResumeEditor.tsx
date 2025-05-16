@@ -26,6 +26,8 @@ export default function ResumePage() {
     sourcePdfPath, // Get from Redux instead of local state
   } = useSelector((state: RootState) => state.resume);
 
+  const { darkMode } = useSelector((state: RootState) => state.theme);
+
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   // Remove sourcePdfPath useState
@@ -241,8 +243,11 @@ export default function ResumePage() {
                 <h3 className="font-semibold text-lg">{project.name}</h3>
                 <div className="flex gap-2">
                   <button
+                    id={`replace-button-${index}`}
                     onClick={() => handleReplaceClick(project)}
-                    className="text-sm bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
+                    className={`${
+                      darkMode ? "bg-black text-white" : "bg-white text-black"
+                    } text-sm px-2 py-1 border border-blue-600 rounded`}
                   >
                     Replace
                   </button>

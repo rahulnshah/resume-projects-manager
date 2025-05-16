@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import { toggleDarkMode } from "../store/themeSlice";
@@ -14,9 +15,12 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={handleToggle}
-      className="p-2 border rounded bg-gray-200 dark:bg-blue-800 text-black dark:text-white"
+      aria-label="Toggle theme"
+      className={`p-2 rounded-full ${
+        darkMode ? "hover:bg-gray-200" : "dark:hover:bg-gray-700"
+      }`}
     >
-      {darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      {darkMode ? "☀️" : "🌙"}
     </button>
   );
 }

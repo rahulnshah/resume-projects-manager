@@ -53,9 +53,7 @@ export default function AddNewProject() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Project Name
-          </label>
+          <label className="block text-sm font-medium mb-1">Project Name</label>
           <input
             type="text"
             value={projectName}
@@ -67,7 +65,7 @@ export default function AddNewProject() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium mb-1">
             Bullet Points
           </label>
           {bullets.map((bullet, index) => (

@@ -1,11 +1,14 @@
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
+import ThemeToggle from "./ThemeToggle";
 
 export default function TabNav() {
   const archivedProjects = useSelector(
     (state: RootState) => state.resume.archivedProjects
   );
+
+  const { darkMode } = useSelector((state: RootState) => state.theme);
 
   return (
     <nav className="flex gap-4 p-4 border-b">
@@ -31,7 +34,14 @@ export default function TabNav() {
         </span>
         Project Archive
         {archivedProjects.length > 0 && (
-          <span className="ml-1 px-2 py-0.5 text-xs bg-gray-200 rounded-full">
+          <span
+            id="archived-projects-counter"
+            // if the darkMode is true, set the background color to blue-600
+            className={`${
+              darkMode ? "bg-black text-white" : "bg-white text-black"
+            } ml-1 px-2 py-0.5 text-xs rounded-full border border-blue-600`}
+            //className="ml-1 px-2 py-0.5 text-xs rounded-full border border-blue-600"
+          >
             {archivedProjects.length}
           </span>
         )}
@@ -47,6 +57,7 @@ export default function TabNav() {
         </span>
         Add New Project
       </NavLink>
+      <ThemeToggle />
     </nav>
   );
 }

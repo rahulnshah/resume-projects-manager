@@ -22,12 +22,18 @@ export default function ProjectSwapModal({
     (state: RootState) => state.resume.archivedProjects
   );
 
+  const { darkMode } = useSelector((state: RootState) => state.theme);
+
   if (!isOpen || !currentProject) return null;
   // Create a map of archived project names for quick lookup
   const archivedProjectNames = new Set(archivedProjects.map((p) => p.name));
 
   return (
-    <div className="fixed inset-y-0 right-0 w-80 bg-white shadow-lg p-4 border-l">
+    <div
+      className={`fixed inset-y-0 right-0 w-80 ${
+        darkMode ? "bg-black" : "bg-white"
+      } shadow-lg p-4 border-l`}
+    >
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-bold">Replace Project</h3>
         <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
@@ -50,8 +56,8 @@ export default function ProjectSwapModal({
               key={project.id}
               className={`w-full p-2 border rounded ${
                 archivedProjectNames.has(project.name)
-                  ? "bg-gray-100 cursor-not-allowed"
-                  : "hover:bg-gray-50 cursor-pointer"
+                  ? "cursor-not-allowed opacity-50"
+                  : "hover:opacity-70 cursor-pointer"
               }`}
               onClick={() => {
                 if (!archivedProjectNames.has(project.name)) {

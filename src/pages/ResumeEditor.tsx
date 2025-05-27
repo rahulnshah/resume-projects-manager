@@ -7,6 +7,7 @@ import {
   archiveProject,
   swapProject,
   setSourcePdfPath, // Import the action
+  reorderProjects,
 } from "../store/resumeSlice";
 import ProjectSwapModal from "../components/ProjectSwapModal";
 import { Project } from "src/model";
@@ -206,6 +207,12 @@ export default function ResumePage() {
     }
   };
 
+  const handleReorderProject = (fromIndex: number, toIndex: number) => {
+    if (toIndex >= 0 && toIndex < resumeProjects.length) {
+      dispatch(reorderProjects({ fromIndex, toIndex }));
+    }
+  };
+
   return (
     <div className="p-4">
       <div className="flex gap-2 mb-4">
@@ -240,7 +247,31 @@ export default function ResumePage() {
           {resumeProjects.map((project, index) => (
             <div key={index} className="border rounded-lg p-3 shadow">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-lg">{project.name}</h3>
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col">
+                    <button
+                      onClick={() => handleReorderProject(index, index - 1)}
+                      disabled={index === 0}
+                      className={`px-1 text-gray-500 hover:text-gray-700 disabled:text-gray-300 ${
+                        darkMode ? "hover:text-gray-400" : "hover:text-gray-700"
+                      }`}
+                      title="Move up"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      onClick={() => handleReorderProject(index, index + 1)}
+                      disabled={index === resumeProjects.length - 1}
+                      className={`px-1 text-gray-500 hover:text-gray-700 disabled:text-gray-300 ${
+                        darkMode ? "hover:text-gray-400" : "hover:text-gray-700"
+                      }`}
+                      title="Move down"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                  <h3 className="font-semibold text-lg">{project.name}</h3>
+                </div>
                 <div className="flex gap-2">
                   <button
                     id={`replace-button-${index}`}

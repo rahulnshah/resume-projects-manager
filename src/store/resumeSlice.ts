@@ -84,6 +84,14 @@ const resumeSlice = createSlice({
     setSourcePdfPath: (state, action: PayloadAction<string>) => {
       state.sourcePdfPath = action.payload;
     },
+    reorderProjects: (
+      state,
+      action: PayloadAction<{ fromIndex: number; toIndex: number }>
+    ) => {
+      const { fromIndex, toIndex } = action.payload;
+      const [movedProject] = state.resumeProjects.splice(fromIndex, 1);
+      state.resumeProjects.splice(toIndex, 0, movedProject);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -127,5 +135,6 @@ export const {
   swapProject,
   restoreProject,
   setSourcePdfPath, // Add this
+  reorderProjects,
 } = resumeSlice.actions;
 export default resumeSlice.reducer;

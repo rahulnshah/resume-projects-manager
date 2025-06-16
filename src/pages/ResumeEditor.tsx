@@ -175,7 +175,7 @@ export default function ResumePage() {
       const newProjectsSection = resumeProjects
         .map((project) => {
           const bullets = project.bullets
-            .map((bullet) => `    -  ${bullet}`)
+            .map((bullet) => `-  ${bullet}`)
             .join("\n");
           return `${project.name}\n${bullets}`;
         })

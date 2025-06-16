@@ -63,6 +63,7 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
     const pages = pdfDoc.getPages();
     const page = pages[0];
     const { width, height } = page.getSize();
+    const comprehensiveRegex = /^[\w\s]+(,\s*[\w\s]+)*$/;
 
     // Clear existing content
     page.drawRectangle({
@@ -109,20 +110,20 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
       // Bullet points
       else if (line.startsWith("-")) {
         xOffset = 70;
-      }
-      // experience title - ends with - Present or last two digits of an year
-      else if (
-        line.endsWith("Present") ||
-        line.search(/([0-9]{2})$/) ||
-        !(line.split(",").length > 10)
-      ) {
-        font = timesRomanBold;
-        fontSize = 10;
       } else if (line.endsWith(".")) {
         xOffset = 70;
         font = timesRomanFont;
       }
-      // Draw the line
+      // experience title - ends with - Present or last two digits of an year
+      else if (line.endsWith("Present") || line.search(/([0-9]{2})$/)) {
+        font = timesRomanBold;
+        fontSize = 10;
+      } else if (comprehensiveRegex.test(line.trim())) {
+        // This is a comma-separated line
+        font = timesRomanFont;
+        fontSize = 10;
+      }
+      //Draw the line
       page.drawText(line.trim(), {
         x: xOffset,
         y: yOffset,

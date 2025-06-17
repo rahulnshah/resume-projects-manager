@@ -115,12 +115,14 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
         font = timesRomanFont;
       }
       // experience title - ends with - Present or last two digits of an year
-      else if (line.endsWith("Present") || line.search(/([0-9]{2})$/)) {
+      else if (line.endsWith("Present") || line.search(/([0-9]{2})$/) !== -1) {
+        // Fix the regex check by adding !== -1
         font = timesRomanBold;
         fontSize = 10;
-      } else if (comprehensiveRegex.test(line.trim())) {
-        // This is a comma-separated line
-        font = timesRomanFont;
+      }
+      // Add specific check for comma-separated skills
+      else if (line.trim().split(",").length > 4) {
+        font = timesRomanFont; // Keep regular font for skills
         fontSize = 10;
       }
       //Draw the line

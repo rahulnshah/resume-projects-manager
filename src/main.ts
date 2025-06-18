@@ -63,7 +63,10 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
     const pages = pdfDoc.getPages();
     const page = pages[0];
     const { width, height } = page.getSize();
-    const comprehensiveRegex = /^[\w\s]+(,\s*[\w\s]+)*$/;
+
+    // Define margins (72 points = 1 inch)
+    const margin = 72;
+    const textWidth = width - margin * 2;
 
     // Clear existing content
     page.drawRectangle({
@@ -80,17 +83,17 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
 
     // Split text into lines for processing
     const lines = fullText.split("\n");
-    let yOffset = height - 50;
+    let yOffset = height - margin; // Start from top margin
 
     lines.forEach((line: string) => {
       if (!line.trim()) {
         yOffset -= 12;
-        return; // Skip empty lines
+        return;
       }
 
       let fontSize = 10;
       let font = timesRomanFont;
-      let xOffset = 50;
+      let xOffset = margin; // Start from left margin
 
       // Name (first line)
       if (lines.indexOf(line) === 0) {
@@ -102,16 +105,38 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
       else if (lines.indexOf(line) === 1) {
         xOffset = (width - font.widthOfTextAtSize(line.trim(), fontSize)) / 2;
       }
-      // Section headers (all caps) and horizontal lines
+      // Section headers
       else if (/^[A-Z\s]+$/.test(line.trim())) {
         fontSize = 12;
         font = timesRomanBold;
       }
       // Bullet points
-      else if (line.startsWith("-")) {
-        xOffset = 70;
+      else if (line.trim().startsWith("-")) {
+        xOffset = margin + 20; // Indent bullets
+
+        // Draw bullet point
+        page.drawText("•", {
+          x: margin + 10,
+          y: yOffset,
+          size: fontSize,
+          font: timesRomanFont,
+          color: rgb(0, 0, 0),
+        });
+
+        // Draw the text without the leading dash
+        page.drawText(line.trim().substring(1), {
+          x: xOffset,
+          y: yOffset,
+          size: fontSize,
+          font: font,
+          color: rgb(0, 0, 0),
+          maxWidth: textWidth - (xOffset - margin), // Adjust maxWidth for indentation
+        });
+
+        yOffset -= fontSize * 1.2;
+        return; // Skip the regular text drawing for bullet points
       } else if (line.endsWith(".")) {
-        xOffset = 70;
+        xOffset = margin + 20;
         font = timesRomanFont;
       }
       // experience title - ends with - Present or last two digits of an year
@@ -125,27 +150,34 @@ ipcMain.handle("save-pdf", async (_, { sourcePath, outputPath, fullText }) => {
         font = timesRomanFont; // Keep regular font for skills
         fontSize = 10;
       }
-      //Draw the line
+
+      // Draw text ensuring it stays within margins
       page.drawText(line.trim(), {
-        x: xOffset,
+        x: Math.max(xOffset, margin),
         y: yOffset,
         size: fontSize,
         font: font,
         color: rgb(0, 0, 0),
+        maxWidth: textWidth, // Ensure text doesn't exceed right margin
       });
 
+      // Draw section header lines within margins
       if (/^[A-Z\s]+$/.test(line.trim())) {
-        yOffset -= fontSize;
+        yOffset -= fontSize * 0.15;
         page.drawLine({
-          start: { x: 50, y: yOffset },
-          end: { x: width - 50, y: yOffset },
+          start: { x: margin, y: yOffset },
+          end: { x: width - margin, y: yOffset },
           thickness: 1,
           color: rgb(0, 0, 0),
         });
+        yOffset -= fontSize * 1.05; // Add some space after the line
+        return;
       }
-
-      // Adjust spacing based on font size
-      yOffset -= fontSize * 1.2;
+      if (fontSize === 25) {
+        yOffset -= fontSize * 0.5;
+      } else {
+        yOffset -= fontSize * 1.2;
+      } // Adjust line height
     });
 
     const newPdfBytes = await pdfDoc.save();

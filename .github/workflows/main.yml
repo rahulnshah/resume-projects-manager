@@ -1,0 +1,39 @@
+name: Build Electron Forge App
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build app
+        run: npm run build # optional, only if your project has a build step
+
+      - name: Package Electron App
+        run: npm run make
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: electron-app
+          path: out/make

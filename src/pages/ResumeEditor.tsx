@@ -16,7 +16,7 @@ import * as pdfjsLib from "pdfjs-dist";
 // Set worker path for PDF.js (this is correct for renderer process)
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.mjs",
-  import.meta.url
+  import.meta.url,
 ).toString();
 export default function ResumePage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -52,14 +52,8 @@ export default function ResumePage() {
 
   const handleImportResume = async () => {
     // Open file picker
-    const filePaths = await window.api.showOpenFilePicker({
-      types: [
-        {
-          description: "PDF Files",
-          accept: { "application/pdf": [".pdf"] },
-        },
-      ],
-      multiple: false,
+    const filePaths = await window.api?.showOpenFilePicker({
+      filters: [{ name: "PDFs", extensions: ["pdf"] }],
     });
 
     if (!filePaths || filePaths.length === 0) {
@@ -185,7 +179,7 @@ export default function ResumePage() {
       const modifiedText = pdfText
         .replace(
           /PROJECTS([\s\S]*?)(?=CERTIFICATIONS|$)/i,
-          `PROJECTS\n${newProjectsSection}\n`
+          `PROJECTS\n${newProjectsSection}\n`,
         )
         .replace(/●/g, "-");
 
@@ -231,8 +225,8 @@ export default function ResumePage() {
               !sourcePdfPath
                 ? "Please import a résumé first"
                 : resumeProjects.length < 3
-                ? "At least 3 projects required"
-                : ""
+                  ? "At least 3 projects required"
+                  : ""
             }
           >
             Export Résumé

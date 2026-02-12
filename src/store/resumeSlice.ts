@@ -16,7 +16,7 @@ export const fetchProjects = createAsyncThunk(
   "resume/fetchProjects",
   async (parsedProjects: Project[]) => {
     return parsedProjects;
-  }
+  },
 );
 
 // Thunk to fetch non-resume projects
@@ -24,11 +24,10 @@ export const fetchNonResumeProjects = createAsyncThunk(
   "resume/fetchNonResumeProjects",
   async (resumeProjectNames: string[]) => {
     // Call the API to fetch non-resume projects
-    const nonResumeProjects = await window.api.loadNonResumeProjects(
-      resumeProjectNames
-    );
+    const nonResumeProjects =
+      await window.api.loadNonResumeProjects(resumeProjectNames);
     return nonResumeProjects;
-  }
+  },
 );
 
 // Add new thunk for saving archived projects
@@ -44,7 +43,7 @@ export const saveArchivedProjects = createAsyncThunk(
     // Save to SQLite via IPC
     await window.api.saveProjects(projects);
     return projects;
-  }
+  },
 );
 
 const resumeSlice = createSlice({
@@ -54,7 +53,7 @@ const resumeSlice = createSlice({
     archiveProject: (state, action: PayloadAction<Project>) => {
       // Remove from resume projects
       state.resumeProjects = state.resumeProjects.filter(
-        (p) => p.name !== action.payload.name
+        (p) => p.name !== action.payload.name,
       );
       // Add to archived projects if not already there
       if (!state.archivedProjects.find((p) => p.name === action.payload.name)) {
@@ -66,31 +65,41 @@ const resumeSlice = createSlice({
     },
     swapProject: (
       state,
-      action: PayloadAction<{ oldProject: Project; newProject: Project }>
+      action: PayloadAction<{ oldProject: Project; newProject: Project }>,
     ) => {
       const { oldProject, newProject } = action.payload;
       state.resumeProjects = state.resumeProjects.map((p) =>
-        p.name === oldProject.name ? newProject : p
+        p.name === oldProject.name ? newProject : p,
       );
+    },
+    appendResumeProject: (state, action: PayloadAction<Project>) => {
+      // Remove from the nonResumeProjects if it exists
+      state.nonResumeProjects = state.nonResumeProjects.filter(
+        (p) => p.name !== action.payload.name,
+      );
+      // Add to resume projects if not already there
+      state.resumeProjects = [...state.resumeProjects, action.payload];
     },
     restoreProject: (state, action: PayloadAction<Project>) => {
       // Remove from archived projects
       state.archivedProjects = state.archivedProjects.filter(
-        (p) => p.name !== action.payload.name
+        (p) => p.name !== action.payload.name,
       );
       // Add to resume projects
-      state.resumeProjects.push(action.payload);
+      state.resumeProjects = [...state.resumeProjects, action.payload];
     },
     setSourcePdfPath: (state, action: PayloadAction<string>) => {
       state.sourcePdfPath = action.payload;
     },
     reorderProjects: (
       state,
-      action: PayloadAction<{ fromIndex: number; toIndex: number }>
+      action: PayloadAction<{ fromIndex: number; toIndex: number }>,
     ) => {
       const { fromIndex, toIndex } = action.payload;
-      const [movedProject] = state.resumeProjects.splice(fromIndex, 1);
-      state.resumeProjects.splice(toIndex, 0, movedProject);
+      const newProjects = [...state.resumeProjects];
+      const [movedProject] = newProjects.splice(fromIndex, 1);
+      newProjects.splice(toIndex, 0, movedProject);
+      state.resumeProjects = newProjects;
     },
   },
   extraReducers: (builder) => {
@@ -136,5 +145,6 @@ export const {
   restoreProject,
   setSourcePdfPath, // Add this
   reorderProjects,
+  appendResumeProject,
 } = resumeSlice.actions;
 export default resumeSlice.reducer;

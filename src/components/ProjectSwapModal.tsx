@@ -1,7 +1,7 @@
 import { Project } from "../model";
-import { useSelector } from "react-redux";
-import { RootState } from "../store";
-
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../store";
+import { appendResumeProject } from "../store/resumeSlice";
 interface ProjectSwapModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,9 +17,15 @@ export default function ProjectSwapModal({
   currentProject,
   availableProjects,
 }: ProjectSwapModalProps) {
+  const dispatch = useDispatch<AppDispatch>();
+
   // Get archived projects from Redux store
   const archivedProjects = useSelector(
-    (state: RootState) => state.resume.archivedProjects
+    (state: RootState) => state.resume.archivedProjects,
+  );
+
+  const resumeProjects = useSelector(
+    (state: RootState) => state.resume.resumeProjects,
   );
 
   const { darkMode } = useSelector((state: RootState) => state.theme);
@@ -28,6 +34,9 @@ export default function ProjectSwapModal({
   // Create a map of archived project names for quick lookup
   const archivedProjectNames = new Set(archivedProjects.map((p) => p.name));
 
+  const handleAddProjectToResumeProjects = (project: Project) => {
+    dispatch(appendResumeProject(project));
+  };
   return (
     <div
       className={`fixed inset-y-0 right-0 w-80 ${
@@ -51,7 +60,7 @@ export default function ProjectSwapModal({
             No other projects available to swap
           </div>
         ) : (
-          availableProjects.map((project) => (
+          availableProjects.map((project, index) => (
             <div
               key={project.id}
               className={`w-full p-2 border rounded ${
@@ -65,6 +74,20 @@ export default function ProjectSwapModal({
                 }
               }}
             >
+              {resumeProjects.length < 3 && (
+                <button
+                  id={`add-button-${index}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddProjectToResumeProjects(project);
+                  }}
+                  className={`${
+                    darkMode ? "bg-black text-white" : "bg-white text-black"
+                  } text-sm px-2 py-1 border border-blue-600 rounded`}
+                >
+                  Add
+                </button>
+              )}
               <div className="flex justify-between items-center">
                 <div className="font-medium">{project.name}</div>
                 {archivedProjectNames.has(project.name) && (

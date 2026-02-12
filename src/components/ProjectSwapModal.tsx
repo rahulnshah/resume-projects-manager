@@ -1,11 +1,11 @@
 import { Project } from "../model";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../store";
-import { appendResumeProject } from "../store/resumeSlice";
+import { appendResumeProject, swapProject } from "../store/resumeSlice";
+
 interface ProjectSwapModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSwap: (oldProject: Project, newProject: Project) => void;
   currentProject: Project | null;
   availableProjects: Project[];
 }
@@ -13,7 +13,6 @@ interface ProjectSwapModalProps {
 export default function ProjectSwapModal({
   isOpen,
   onClose,
-  onSwap,
   currentProject,
   availableProjects,
 }: ProjectSwapModalProps) {
@@ -31,11 +30,17 @@ export default function ProjectSwapModal({
   const { darkMode } = useSelector((state: RootState) => state.theme);
 
   if (!isOpen || !currentProject) return null;
-  // Create a map of archived project names for quick lookup
+
   const archivedProjectNames = new Set(archivedProjects.map((p) => p.name));
 
-  const handleAddProjectToResumeProjects = (project: Project) => {
+  const handleAddProject = (project: Project) => {
     dispatch(appendResumeProject(project));
+    onClose();
+  };
+
+  const handleSwap = (oldProject: Project, newProject: Project) => {
+    dispatch(swapProject({ oldProject, newProject }));
+    onClose();
   };
   return (
     <div
@@ -64,40 +69,52 @@ export default function ProjectSwapModal({
             <div
               key={project.id}
               className={`w-full p-2 border rounded ${
-                archivedProjectNames.has(project.name)
-                  ? "cursor-not-allowed opacity-50"
-                  : "hover:opacity-70 cursor-pointer"
+                archivedProjectNames.has(project.name) ? "opacity-50" : ""
               }`}
-              onClick={() => {
-                if (!archivedProjectNames.has(project.name)) {
-                  onSwap(currentProject, project);
-                }
-              }}
             >
-              {resumeProjects.length < 3 && (
-                <button
-                  id={`add-button-${index}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAddProjectToResumeProjects(project);
-                  }}
-                  className={`${
-                    darkMode ? "bg-black text-white" : "bg-white text-black"
-                  } text-sm px-2 py-1 border border-blue-600 rounded`}
-                >
-                  Add
-                </button>
-              )}
-              <div className="flex justify-between items-center">
-                <div className="font-medium">{project.name}</div>
-                {archivedProjectNames.has(project.name) && (
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                    Archived
-                  </span>
-                )}
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex-1">
+                  <div className="flex justify-between items-center">
+                    <div className="font-medium">{project.name}</div>
+                    {archivedProjectNames.has(project.name) && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                        Archived
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {project.bullets.length} bullet points
+                  </div>
+                </div>
               </div>
-              <div className="text-sm text-gray-500">
-                {project.bullets.length} bullet points
+
+              <div className="flex gap-2">
+                {resumeProjects.length < 3 && (
+                  <button
+                    id={`add-button-${index}`}
+                    onClick={() => handleAddProject(project)}
+                    disabled={archivedProjectNames.has(project.name)}
+                    className={`text-sm px-2 py-1 border border-green-600 rounded ${
+                      archivedProjectNames.has(project.name)
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-blue-600 hover:text-white"
+                    }`}
+                  >
+                    Add
+                  </button>
+                )}
+                <button
+                  id={`swap-button-${index}`}
+                  onClick={() => handleSwap(currentProject, project)}
+                  disabled={archivedProjectNames.has(project.name)}
+                  className={`text-sm px-2 py-1 border border-green-600 rounded ${
+                    archivedProjectNames.has(project.name)
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-green-600 hover:text-white"
+                  }`}
+                >
+                  Swap
+                </button>
               </div>
             </div>
           ))

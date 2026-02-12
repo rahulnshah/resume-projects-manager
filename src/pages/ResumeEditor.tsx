@@ -102,11 +102,12 @@ export default function ResumePage() {
     }
 
     const section = projectSectionMatch[1].trim();
-    //console.log("Project Section:\n", section);
+    console.log("Project Section:\n", section);
 
     // Regular expression to match each project
+    // URLs must have a path (/) to avoid matching things like "Next.js" in bullet text
     const projectRegex =
-      /([A-Za-z0-9\s\-&]+)\s+((?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:\/[^\s]*)?)\s+●\s+([\s\S]*?)(?=(?:[A-Za-z0-9\s\-&]+?\s+(?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:\/[^\s]*)?)|$)/g;
+      /([A-Za-z0-9\s\-&]+)\s+((?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}\/[^\s]+)\s+●\s+([\s\S]*?)(?=(?:[A-Za-z0-9\s\-&]+?\s+(?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}\/[^\s]+)|$)/g;
 
     const projects: Project[] = [];
     let match;

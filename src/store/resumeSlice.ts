@@ -78,7 +78,7 @@ const resumeSlice = createSlice({
         (p) => p.name !== action.payload.name,
       );
       // Add to resume projects if not already there
-      state.resumeProjects.push(action.payload);
+      state.resumeProjects = [...state.resumeProjects, action.payload];
     },
     restoreProject: (state, action: PayloadAction<Project>) => {
       // Remove from archived projects
@@ -86,7 +86,7 @@ const resumeSlice = createSlice({
         (p) => p.name !== action.payload.name,
       );
       // Add to resume projects
-      state.resumeProjects.push(action.payload);
+      state.resumeProjects = [...state.resumeProjects, action.payload];
     },
     setSourcePdfPath: (state, action: PayloadAction<string>) => {
       state.sourcePdfPath = action.payload;
@@ -96,8 +96,10 @@ const resumeSlice = createSlice({
       action: PayloadAction<{ fromIndex: number; toIndex: number }>,
     ) => {
       const { fromIndex, toIndex } = action.payload;
-      const [movedProject] = state.resumeProjects.splice(fromIndex, 1);
-      state.resumeProjects.splice(toIndex, 0, movedProject);
+      const newProjects = [...state.resumeProjects];
+      const [movedProject] = newProjects.splice(fromIndex, 1);
+      newProjects.splice(toIndex, 0, movedProject);
+      state.resumeProjects = newProjects;
     },
   },
   extraReducers: (builder) => {

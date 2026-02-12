@@ -16,7 +16,7 @@ import * as pdfjsLib from "pdfjs-dist";
 // Set worker path for PDF.js (this is correct for renderer process)
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.mjs",
-  import.meta.url
+  import.meta.url,
 ).toString();
 export default function ResumePage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -106,7 +106,7 @@ export default function ResumePage() {
 
     // Regular expression to match each project
     const projectRegex =
-      /([A-Za-z0-9\s\-&]+)\s+(https?:\/\/\S+)\s+●\s+([\s\S]*?)(?=(?:[A-Za-z0-9\s\-&]+?\s+https?:\/\/\S+)|$)/g;
+      /([A-Za-z0-9\s\-&]+)\s+((?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:\/[^\s]*)?)\s+●\s+([\s\S]*?)(?=(?:[A-Za-z0-9\s\-&]+?\s+(?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:\/[^\s]*)?)|$)/g;
 
     const projects: Project[] = [];
     let match;
@@ -185,7 +185,7 @@ export default function ResumePage() {
       const modifiedText = pdfText
         .replace(
           /PROJECTS([\s\S]*?)(?=CERTIFICATIONS|$)/i,
-          `PROJECTS\n${newProjectsSection}\n`
+          `PROJECTS\n${newProjectsSection}\n`,
         )
         .replace(/●/g, "-");
 
@@ -231,8 +231,8 @@ export default function ResumePage() {
               !sourcePdfPath
                 ? "Please import a résumé first"
                 : resumeProjects.length < 3
-                ? "At least 3 projects required"
-                : ""
+                  ? "At least 3 projects required"
+                  : ""
             }
           >
             Export Résumé

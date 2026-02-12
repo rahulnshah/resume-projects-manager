@@ -5,7 +5,6 @@ import {
   fetchProjects,
   fetchNonResumeProjects,
   archiveProject,
-  swapProject,
   setSourcePdfPath, // Import the action
   reorderProjects,
 } from "../store/resumeSlice";
@@ -38,12 +37,6 @@ export default function ResumePage() {
     await dispatch(fetchNonResumeProjects(resumeProjects.map((p) => p.name)));
     setSelectedProject(project);
     setSwapModalOpen(true);
-  };
-
-  const handleSwapProject = (oldProject: Project, newProject: Project) => {
-    dispatch(swapProject({ oldProject, newProject }));
-    setSwapModalOpen(false);
-    setSelectedProject(null);
   };
 
   const handleArchiveProject = (project: Project) => {
@@ -96,11 +89,12 @@ export default function ResumePage() {
     }
 
     const section = projectSectionMatch[1].trim();
-    //console.log("Project Section:\n", section);
+    console.log("Project Section:\n", section);
 
     // Regular expression to match each project
+    // URLs must have a path (/) to avoid matching things like "Next.js" in bullet text
     const projectRegex =
-      /([A-Za-z0-9\s\-&]+)\s+(https?:\/\/\S+)\s+●\s+([\s\S]*?)(?=(?:[A-Za-z0-9\s\-&]+?\s+https?:\/\/\S+)|$)/g;
+      /([A-Za-z0-9\s\-&]+)\s+((?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}\/[^\s]+)\s+●\s+([\s\S]*?)(?=(?:[A-Za-z0-9\s\-&]+?\s+(?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}\/[^\s]+)|$)/g;
 
     const projects: Project[] = [];
     let match;
@@ -300,7 +294,6 @@ export default function ResumePage() {
           setSwapModalOpen(false);
           setSelectedProject(null);
         }}
-        onSwap={handleSwapProject}
         currentProject={selectedProject}
         availableProjects={nonResumeProjects}
       />

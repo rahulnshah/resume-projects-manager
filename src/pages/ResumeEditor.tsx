@@ -5,7 +5,6 @@ import {
   fetchProjects,
   fetchNonResumeProjects,
   archiveProject,
-  swapProject,
   setSourcePdfPath, // Import the action
   reorderProjects,
 } from "../store/resumeSlice";
@@ -38,12 +37,6 @@ export default function ResumePage() {
     await dispatch(fetchNonResumeProjects(resumeProjects.map((p) => p.name)));
     setSelectedProject(project);
     setSwapModalOpen(true);
-  };
-
-  const handleSwapProject = (oldProject: Project, newProject: Project) => {
-    dispatch(swapProject({ oldProject, newProject }));
-    setSwapModalOpen(false);
-    setSelectedProject(null);
   };
 
   const handleArchiveProject = (project: Project) => {
@@ -307,7 +300,6 @@ export default function ResumePage() {
           setSwapModalOpen(false);
           setSelectedProject(null);
         }}
-        onSwap={handleSwapProject}
         currentProject={selectedProject}
         availableProjects={nonResumeProjects}
       />

@@ -45,14 +45,8 @@ export default function ResumePage() {
 
   const handleImportResume = async () => {
     // Open file picker
-    const filePaths = await window.api.showOpenFilePicker({
-      types: [
-        {
-          description: "PDF Files",
-          accept: { "application/pdf": [".pdf"] },
-        },
-      ],
-      multiple: false,
+    const filePaths = await window.api?.showOpenFilePicker({
+      filters: [{ name: "PDFs", extensions: ["pdf"] }],
     });
 
     if (!filePaths || filePaths.length === 0) {
@@ -169,7 +163,7 @@ export default function ResumePage() {
       const newProjectsSection = resumeProjects
         .map((project) => {
           const bullets = project.bullets
-            .map((bullet) => `    -  ${bullet}`)
+            .map((bullet) => `-  ${bullet}`)
             .join("\n");
           return `${project.name}\n${bullets}`;
         })
